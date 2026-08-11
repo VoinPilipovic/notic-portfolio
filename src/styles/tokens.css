@@ -1,0 +1,128 @@
+/*
+  NOTIC design foundation.
+  Single source of truth for color, type, spacing, radius, motion and
+  elevation primitives. Tailwind's `@theme` namespaces below generate real
+  utility classes (bg-accent, text-muted, rounded-lg, ease-out-expo, ...);
+  the plain `:root` block holds tokens Tailwind has no utility namespace
+  for (durations, glass, gradients) - those are consumed as CSS variables
+  directly, or mirrored as JS constants in `src/animations` for GSAP and
+  Framer Motion.
+*/
+
+@theme {
+  /* Color - near-black graphite neutrals + a restrained navy accent.
+     The accent is a small signal (a hairline, a hover, a tiny indicator) -
+     never a fill, never the dominant color of a screen. The overall balance
+     stays black / charcoal / ivory. */
+  --color-background: #0a0b0d;
+  --color-surface: #1f1f1f;
+  --color-surface-raised: #2d2d2d;
+  --color-foreground: #f8f5f2;
+  --color-muted: #928d85;
+  --color-border: rgba(248, 245, 242, 0.08);
+  --color-accent: #4c82b0;
+  --color-accent-hover: #6fa3cc;
+  --color-accent-dim: #0a1a2f;
+  --color-silver: #c8c4bc;
+  --color-warm: #e8b98a;
+
+  /* Typography - Syne carries large headings and brand moments, Instrument
+     Sans carries body/navigation/UI, IBM Plex Mono is reserved for system,
+     metadata and technical notes. No serif, no Fraunces. */
+  --font-sans: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-syne), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-ibm-plex-mono), ui-monospace, monospace;
+
+  --text-display: clamp(2.75rem, 2rem + 4.25vw, 6rem);
+  --text-display--line-height: 1.04;
+  --text-display--letter-spacing: -0.02em;
+
+  --text-h1: clamp(2.5rem, 1.75rem + 3.5vw, 5rem);
+  --text-h1--line-height: 1.08;
+  --text-h1--letter-spacing: -0.01em;
+
+  --text-h2: clamp(2rem, 1.5rem + 2.25vw, 3.5rem);
+  --text-h2--line-height: 1.15;
+  --text-h2--letter-spacing: -0.008em;
+
+  --text-h3: clamp(1.5rem, 1.25rem + 1.25vw, 2.25rem);
+  --text-h3--line-height: 1.25;
+
+  --text-lead: clamp(1.125rem, 1rem + 0.5vw, 1.375rem);
+  --text-lead--line-height: 1.6;
+
+  --text-body: 1rem;
+  --text-body--line-height: 1.65;
+
+  --text-small: 0.875rem;
+  --text-small--line-height: 1.55;
+
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.4;
+  --text-caption--letter-spacing: 0.08em;
+
+  /* Spacing (semantic extensions to Tailwind's default scale) */
+  --spacing-gutter: clamp(1.5rem, 1rem + 2.5vw, 4rem);
+  --spacing-section: clamp(4rem, 3rem + 4.5vw, 8rem);
+
+  /* Radius */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* Container widths */
+  --container-narrow: 48rem;
+  --container-content: 75rem;
+  --container-wide: 90rem;
+
+  /* Easing presets */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+
+  /* Shadow presets (neutral elevation only - no glow) */
+  --shadow-elevated: 0 20px 60px -15px rgba(0, 0, 0, 0.6);
+}
+
+:root {
+  /* Animation durations (mirrored in src/animations/durations.ts) */
+  --duration-fast: 250ms;
+  --duration-base: 500ms;
+  --duration-slow: 800ms;
+  --duration-cinematic: 1600ms;
+
+  /* Transition presets */
+  --transition-base: var(--duration-base) var(--ease-out-expo);
+  --transition-slow: var(--duration-slow) var(--ease-out-expo);
+  --transition-cinematic: var(--duration-cinematic) var(--ease-in-out-quart);
+
+  /* Glass presets */
+  --glass-bg: rgba(243, 241, 238, 0.04);
+  --glass-bg-strong: rgba(243, 241, 238, 0.08);
+  --glass-border: rgba(243, 241, 238, 0.08);
+  --glass-blur: 20px;
+
+  /* Gradient presets */
+  --gradient-fade-bottom: linear-gradient(to bottom, transparent 0%, #0a0b0d 100%);
+}
+
+/* Composite utilities built from the tokens above */
+@utility glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+
+@utility glass-strong {
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+
+@utility gradient-fade-bottom {
+  background-image: var(--gradient-fade-bottom);
+}

@@ -1,5 +1,7 @@
 "use client";
 
+import type { ReactNode } from "react";
+
 import { GlassImage } from "@/components/shared/GlassImage";
 import { useOSLauncher } from "@/components/layout/OSLauncher/OSLauncherContext";
 import { Button } from "@/components/ui/Button";
@@ -12,8 +14,15 @@ interface WorkCardProps {
    * entries, which show an honest status panel instead of a borrowed or
    * invented image. */
   image?: string;
+  /** For a real, built project with no photography to preview (NOTIC PAY
+   * is a product UI, not a photo shoot) - a genuine on-brand preview node
+   * instead of the "in development" placeholder, which would misrepresent
+   * a finished experience as unbuilt. Takes precedence over `image`. */
+  previewNode?: ReactNode;
   reversed?: boolean;
 }
+
+const INDEX_BY_SLUG: Record<string, string> = { bmw: "01", noir: "02", "notic-pay": "03" };
 
 /**
  * One Selected Work entry. For a project with a built overview (BMW, NOIR),
@@ -23,14 +32,16 @@ interface WorkCardProps {
  * matter which entry point the visitor used. Projects without an overview
  * yet show their real status instead of a dead-looking preview.
  */
-export function WorkCard({ project, image, reversed }: WorkCardProps) {
+export function WorkCard({ project, image, previewNode, reversed }: WorkCardProps) {
   const { openProject } = useOSLauncher();
   const canOpen = project.hasOverview;
 
   return (
     <div className="grid w-full items-center gap-8 border-t border-border py-10 lg:grid-cols-2 lg:gap-14">
       <div className={cn("relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-surface", reversed && "lg:order-2")}>
-        {image ? (
+        {previewNode ? (
+          previewNode
+        ) : image ? (
           <GlassImage src={image} alt={`${project.name} preview`} className="h-full w-full" sizes="(min-width: 1024px) 50vw, 100vw" />
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center gap-2 border border-dashed border-border">
@@ -42,7 +53,7 @@ export function WorkCard({ project, image, reversed }: WorkCardProps) {
 
       <div className={cn("flex flex-col items-start gap-4", reversed && "lg:order-1")}>
         <span className="font-mono text-caption text-accent-hover">
-          {project.slug === "bmw" ? "01" : project.slug === "noir" ? "02" : "03"} — {project.category}
+          {INDEX_BY_SLUG[project.slug] ?? "—"} — {project.category}
         </span>
         <h3 className="font-display text-h1 font-bold leading-none text-foreground">{project.name}</h3>
         {project.description && <p className="max-w-md text-lead text-muted">{project.description}</p>}

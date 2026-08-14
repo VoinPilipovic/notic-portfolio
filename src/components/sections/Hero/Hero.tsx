@@ -37,6 +37,13 @@ export function Hero() {
 
   const [particleMaterial, setParticleMaterial] = useState<ParticleMaterial | null>(null);
   const [isNarrow] = useState(() => typeof window !== "undefined" && window.matchMedia("(max-width: 639px)").matches);
+  // The particle canvas's own useFrame loop would otherwise keep running -
+  // continuously writing uTime, continuously paying for a WebGL frame -
+  // for the rest of the session even though the intro already fully
+  // crossfaded the wrapper to opacity 0 within the first couple of
+  // seconds. Once that fade lands, the canvas is unmounted outright
+  // (NoticParticles already disposes its geometry/material on unmount).
+  const [particlesSettled, setParticlesSettled] = useState(false);
   const prefersReducedMotion = usePrefersReducedMotion();
 
   const handleParticlesReady = useCallback((material: ParticleMaterial) => setParticleMaterial(material), []);
@@ -98,6 +105,7 @@ export function Hero() {
         lockStart + t.lock * 0.12
       );
       tl.to(particleWrapRef.current, { opacity: 0, duration: t.lock * 0.28 }, lockStart + t.lock * 0.5);
+      tl.call(() => setParticlesSettled(true), [], lockStart + t.lock * 0.5 + t.lock * 0.28 + 0.05);
       tl.to(
         wordmarkRef.current,
         { opacity: 1, filter: "blur(0px)", scale: 1, duration: t.lock * 0.32, ease: "sine.out" },
@@ -169,7 +177,7 @@ export function Hero() {
     >
       <HeroBackground />
 
-      {!prefersReducedMotion && (
+      {!prefersReducedMotion && !particlesSettled && (
         <div ref={particleWrapRef} className="pointer-events-none absolute inset-0 z-[5] opacity-0">
           <NoticParticles
             onReady={handleParticlesReady}

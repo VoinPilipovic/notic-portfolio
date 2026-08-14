@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import dynamic from "next/dynamic";
 import { ArrowLeft, X } from "lucide-react";
 
 import { gsap } from "@/animations/gsap";
@@ -9,11 +10,33 @@ import { expandableProjectSlugs, osProjects } from "@/data/osProjects";
 import type { ProjectFilterId } from "@/data/osProjects";
 import { startScroll, stopScroll } from "@/hooks/useLenis";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { ViewLoadingFallback } from "@/components/shared/ViewLoadingFallback";
 import { cn } from "@/lib/utils";
 
-import { BMWExperience } from "./BMWExperience/BMWExperience";
-import { NOIRExperience } from "./NOIRExperience/NOIRExperience";
 import { ProjectsList } from "./ProjectsList";
+
+// Each fullscreen project is its own chunk, fetched only once its slug is
+// actually opened - BMW/NOIR/NOTIC PAY together are a meaningful amount of
+// code (NOTIC PAY alone is a full second app), and none of it belongs in
+// the homepage's initial bundle just because ProjectsWindow is always
+// mounted underneath OSIntro. The FLIP expand (0.85-1.1s) usually covers
+// the fetch, but a loading state is still here for a slow connection.
+const BMWExperience = dynamic(() => import("./BMWExperience/BMWExperience").then((m) => m.BMWExperience), {
+  ssr: false,
+  loading: () => <ViewLoadingFallback />,
+});
+const NOIRExperience = dynamic(() => import("./NOIRExperience/NOIRExperience").then((m) => m.NOIRExperience), {
+  ssr: false,
+  loading: () => <ViewLoadingFallback />,
+});
+const NoticPayExperience = dynamic(
+  () => import("./NoticPayExperience/NoticPayExperience").then((m) => m.NoticPayExperience),
+  { ssr: false, loading: () => <ViewLoadingFallback /> }
+);
+const CASA01Experience = dynamic(
+  () => import("./CASA01Experience/CASA01Experience").then((m) => m.CASA01Experience),
+  { ssr: false, loading: () => <ViewLoadingFallback /> }
+);
 
 interface ProjectsWindowProps {
   open: boolean;
@@ -79,7 +102,9 @@ export function ProjectsWindow({
   const activeProject = activeSlug ? osProjects.find((p) => p.slug === activeSlug) : undefined;
   const showingBmw = activeSlug === "bmw";
   const showingNoir = activeSlug === "noir";
-  const showingExpandedProject = showingBmw || showingNoir;
+  const showingNoticPay = activeSlug === "notic-pay";
+  const showingCasa01 = activeSlug === "casa-01";
+  const showingExpandedProject = isExpandableSlug(activeSlug);
   const backdropRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -171,6 +196,7 @@ export function ProjectsWindow({
     const isExpanded = isExpandableSlug(activeSlug);
     const enteringBmw = activeSlug === "bmw" && !wasExpanded;
     const enteringNoir = activeSlug === "noir" && !wasExpanded;
+    const enteringCasa01 = activeSlug === "casa-01" && !wasExpanded;
     prevSlugRef.current = activeSlug;
 
     if (prefersReducedMotion) {
@@ -240,6 +266,27 @@ export function ProjectsWindow({
             .to(titleFlashRef.current, { opacity: 0, duration: 0.6, ease: "sine.in" }, "+=0.55")
             .to(veil, { opacity: 0, duration: 0.9, ease: "sine.inOut" }, "+=0.15");
         }
+      } else if (enteringCasa01) {
+        // CASA 01's own sequence - quiet and architectural: a brief held
+        // black beat before the hero photograph is let in, using the
+        // shared default title-flash treatment rather than a bespoke one.
+        if (titleFlashRef.current) gsap.set(titleFlashRef.current, { opacity: 0, y: 8 });
+        tl.to(panel, {
+          top: 0,
+          left: 0,
+          width: window.innerWidth,
+          height: window.innerHeight,
+          borderRadius: 0,
+          duration: 0.95,
+          ease: "power2.inOut",
+          onComplete: () => gsap.set(panel, { width: "100%", height: "100%" }),
+        });
+        if (veil) {
+          tl.to(veil, { opacity: 1, duration: 0.4, ease: "sine.inOut" }, "-=0.4")
+            .to(titleFlashRef.current, { opacity: 1, y: 0, duration: 0.4, ease: "sine.out" }, "-=0.05")
+            .to(titleFlashRef.current, { opacity: 0, duration: 0.35, ease: "sine.in" }, "+=0.4")
+            .to(veil, { opacity: 0, duration: 0.55, ease: "sine.inOut" }, "-=0.25");
+        }
       } else {
         // A future expandable project with no bespoke sequence yet - the
         // FLIP still works, just without a veil moment on top of it.
@@ -283,7 +330,7 @@ export function ProjectsWindow({
       ref={backdropRef}
       onClick={onClose}
       className="fixed inset-0 z-[70] flex items-end justify-center opacity-0 sm:items-center sm:p-8"
-      style={{ pointerEvents: "none", background: "rgba(5,5,7,0.6)", backdropFilter: "blur(6px)" }}
+      style={{ pointerEvents: "none", background: "rgba(5,5,7,0.72)" }}
     >
       <div
         ref={panelRef}
@@ -293,7 +340,15 @@ export function ProjectsWindow({
         aria-hidden={!open}
         tabIndex={-1}
         onClick={(event) => event.stopPropagation()}
-        className="glass-strong relative flex h-[86vh] w-full flex-col overflow-hidden rounded-t-2xl shadow-elevated focus:outline-none sm:h-[38rem] sm:max-h-[85vh] sm:w-[52rem] sm:rounded-2xl"
+        className={cn(
+          "glass-strong relative flex h-[86vh] w-full flex-col overflow-hidden rounded-t-2xl shadow-elevated focus:outline-none sm:h-[38rem] sm:w-[52rem] sm:rounded-2xl",
+          // The 85vh cap only ever meant to bound the small windowed popup
+          // (mirrors windowedRect()'s own vh*0.85 below) - left unconditional,
+          // it also clamps the fullscreen expanded state a few percent short
+          // of the real viewport, since GSAP's inline `height` can't override
+          // a separate `max-height` rule.
+          !showingExpandedProject && "sm:max-h-[85vh]"
+        )}
       >
         <div
           aria-hidden
@@ -348,12 +403,19 @@ export function ProjectsWindow({
         <div
           ref={bodyRef}
           data-lenis-prevent
-          className={cn("relative z-10 flex-1", showingExpandedProject ? "overflow-hidden" : "overflow-y-auto overscroll-contain")}
+          className={cn(
+            "relative z-10 flex-1",
+            showingExpandedProject ? "overflow-hidden" : "thin-scrollbar overflow-y-auto overscroll-contain"
+          )}
         >
           {showingBmw ? (
             <BMWExperience onBack={onBack} onClose={onClose} />
           ) : showingNoir ? (
             <NOIRExperience onBack={onBack} onClose={onClose} />
+          ) : showingNoticPay ? (
+            <NoticPayExperience onBack={onBack} onClose={onClose} />
+          ) : showingCasa01 ? (
+            <CASA01Experience onBack={onBack} onClose={onClose} />
           ) : (
             <ProjectsList
               onOpenProject={onOpenProject}

@@ -126,3 +126,27 @@
 @utility gradient-fade-bottom {
   background-image: var(--gradient-fade-bottom);
 }
+
+/* A restrained scrollbar for NOTIC OS windows - thin and dark, never the
+   bright default browser bar, but still a real visible/usable affordance
+   (not hidden entirely). Firefox via scrollbar-width/-color, WebKit via
+   the pseudo-elements. */
+@utility thin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--color-border);
+    border-radius: 9999px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-muted);
+  }
+}

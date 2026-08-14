@@ -1,0 +1,73 @@
+/*
+  Style isolation for the embedded NOTIC PAY experience
+  (src/components/{card,cards,dashboard,transfer,analytics,savings,auth,
+  intro,navigation,charts,transactions}/**, orchestrated by
+  src/components/sections/OSIntro/NoticPayExperience/NoticPayExperience.tsx).
+
+  NOTIC PAY was built as its own standalone app with its own design tokens,
+  and those tokens happen to share several *names* with this portfolio's
+  own tokens.css (--color-background, --color-accent, --text-h1, --text-h2,
+  --text-body, --text-small, --text-caption, --duration-fast/base/slow,
+  --glass-bg/border/blur, radius, shadow) - both were built to the same
+  Tailwind v4 @theme pattern, by design. Since Tailwind utilities like
+  bg-background/text-h1/duration-[var(--duration-base)] just read whatever
+  value these custom properties resolve to at that point in the DOM, this
+  block overrides them - with NOTIC PAY's own exact values - scoped under
+  `.notic-pay-scope`, so nothing here leaks out to the rest of the site and
+  nothing from the rest of the site leaks in. Fonts are deliberately NOT
+  overridden here: NOTIC PAY uses the identical Syne / Instrument Sans /
+  IBM Plex Mono already loaded once by the portfolio's own root layout, so
+  --font-display/--font-sans/--font-mono resolve correctly unscoped.
+*/
+
+.notic-pay-scope {
+  --color-background: #08090b;
+  --color-surface: #111315;
+  --color-surface-raised: #1b1e21;
+  --color-foreground: #f5f3ef;
+  --color-muted: #8a8d91;
+  --color-border: rgba(245, 243, 239, 0.08);
+  --color-accent: #6e9fc8;
+  --color-accent-hover: #8fb6d8;
+  --color-accent-dim: #24343f;
+
+  --text-h1: 1.5rem;
+  --text-h1--line-height: 1.2;
+  --text-h2: 1.125rem;
+  --text-h2--line-height: 1.3;
+  --text-body: 1rem;
+  --text-body--line-height: 1.5;
+  --text-small: 0.875rem;
+  --text-small--line-height: 1.45;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.4;
+  --text-caption--letter-spacing: 0.06em;
+
+  --spacing-gutter: clamp(1rem, 0.85rem + 0.75vw, 1.5rem);
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.75rem;
+  --radius-full: 9999px;
+
+  --shadow-elevated: 0 20px 50px -20px rgba(0, 0, 0, 0.65);
+
+  --duration-fast: 150ms;
+  --duration-base: 280ms;
+  --duration-slow: 480ms;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+
+  --glass-bg: rgba(245, 243, 239, 0.04);
+  --glass-bg-strong: rgba(245, 243, 239, 0.08);
+  --glass-border: rgba(245, 243, 239, 0.08);
+  --glass-blur: 20px;
+
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}

@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 
 import { gsap } from "@/animations/gsap";
+import { useOSLauncher } from "@/components/layout/OSLauncher/OSLauncherContext";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 export const BACKBONE_TONE_ID = "atmosphere-backbone-tone";
@@ -39,7 +40,9 @@ export const GRAIN_SVG =
 export function AtmosphereBackbone() {
   const lightARef = useRef<HTMLDivElement>(null);
   const lightBRef = useRef<HTMLDivElement>(null);
+  const tweensRef = useRef<gsap.core.Tween[]>([]);
   const prefersReducedMotion = usePrefersReducedMotion();
+  const { projectsOpen } = useOSLauncher();
 
   useEffect(() => {
     const tone = document.getElementById(BACKBONE_TONE_ID);
@@ -53,14 +56,38 @@ export function AtmosphereBackbone() {
 
     const context = gsap.context(() => {
       gsap.set(a, { xPercent: -8, yPercent: -6 });
-      gsap.to(a, { xPercent: 8, yPercent: 10, duration: 150, repeat: -1, yoyo: true, ease: "sine.inOut" });
+      const tweenA = gsap.to(a, { xPercent: 8, yPercent: 10, duration: 150, repeat: -1, yoyo: true, ease: "sine.inOut" });
 
       gsap.set(b, { xPercent: 10, yPercent: 8 });
-      gsap.to(b, { xPercent: -10, yPercent: -6, duration: 190, repeat: -1, yoyo: true, ease: "sine.inOut", delay: 12 });
+      const tweenB = gsap.to(b, {
+        xPercent: -10,
+        yPercent: -6,
+        duration: 190,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut",
+        delay: 12,
+      });
+
+      tweensRef.current = [tweenA, tweenB];
     });
 
-    return () => context.revert();
+    return () => {
+      tweensRef.current = [];
+      context.revert();
+    };
   }, [prefersReducedMotion]);
+
+  // A fullscreen NOTIC OS project fully occludes this layer - no reason to
+  // keep animating two 150s/190s drift tweens (and compositing the result)
+  // underneath it. Pausing/resuming in place (not killing) means they pick
+  // back up smoothly, no re-seed jump, when the window closes.
+  useEffect(() => {
+    for (const tween of tweensRef.current) {
+      if (projectsOpen) tween.pause();
+      else tween.resume();
+    }
+  }, [projectsOpen]);
 
   return (
     <>

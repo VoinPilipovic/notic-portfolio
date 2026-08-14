@@ -4,12 +4,6 @@ import { ArrowUpRight } from "lucide-react";
 
 import { useOSLauncher } from "@/components/layout/OSLauncher/OSLauncherContext";
 
-import type { DesktopAppsController } from "./useDesktopApps";
-
-interface SystemDashboardProps {
-  controller: DesktopAppsController;
-}
-
 const MODULES = ["WebGL", "GSAP", "Three.js", "Python / AI"];
 
 /**
@@ -17,12 +11,11 @@ const MODULES = ["WebGL", "GSAP", "Three.js", "Python / AI"];
  * built from the same chrome every other OS surface uses (border, mono
  * labels, the accent-dot status indicator from StatusArea). It doesn't
  * introduce any new interaction model - "Open" reaches the same
- * `useOSLauncher().openProject` BMW/NOIR use everywhere else, and
- * Experiments/Archive call the exact same `controller.openApp` the dock
- * icons already call. Hidden below `lg` so it never competes with the icon
- * column or dock on smaller desktop-OS viewports.
+ * `useOSLauncher().openProject` BMW/NOIR/NOTIC PAY use everywhere else.
+ * Hidden below `lg` so it never competes with the icon column or dock on
+ * smaller desktop-OS viewports.
  */
-export function SystemDashboard({ controller }: SystemDashboardProps) {
+export function SystemDashboard() {
   const { openProject } = useOSLauncher();
 
   return (
@@ -55,17 +48,10 @@ export function SystemDashboard({ controller }: SystemDashboardProps) {
         </button>
         <button
           type="button"
-          onClick={() => controller.openApp("experiments")}
+          onClick={() => openProject("notic-pay")}
           className="text-left text-small text-foreground/85 transition-colors duration-[var(--duration-base)] ease-out-expo hover:text-accent-hover"
         >
-          Experiments
-        </button>
-        <button
-          type="button"
-          onClick={() => controller.openApp("archive")}
-          className="text-left text-small text-foreground/85 transition-colors duration-[var(--duration-base)] ease-out-expo hover:text-accent-hover"
-        >
-          Archive
+          NOTIC PAY
         </button>
       </div>
 

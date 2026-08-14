@@ -43,7 +43,7 @@ export function Desktop({ controller, reduceMotion }: DesktopProps) {
 
       <ProjectsApp />
 
-      <SystemDashboard controller={controller} />
+      <SystemDashboard />
 
       {STACKABLE_IDS.map((id) => {
         const app = desktopApps.find((a) => a.id === id)!;
@@ -60,6 +60,7 @@ export function Desktop({ controller, reduceMotion }: DesktopProps) {
             zIndex={60 + Math.max(cascadeIndex, 0)}
             reduceMotion={reduceMotion}
             cascadeIndex={cascadeIndex}
+            isFocused={isOpen && cascadeIndex === openOrder.length - 1}
           >
             {id === "settings" ? (
               <SettingsApp reduceMotion={controller.reduceMotion} onReduceMotionChange={controller.setReduceMotion} />

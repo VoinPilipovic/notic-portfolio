@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { ArrowUpRight, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
 import { gsap } from "@/animations/gsap";
+import { Button } from "@/components/ui/Button";
 import {
   matchesProjectFilter,
   osProjects,
@@ -15,6 +16,7 @@ import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { cn } from "@/lib/utils";
 
 import { bmwImages } from "./BMWExperience/bmwAssets";
+import { casaImages } from "./CASA01Experience/casaAssets";
 import { noirImages } from "./NOIRExperience/noirAssets";
 
 const STATUS_STYLES: Record<ProjectStatus, string> = {
@@ -30,6 +32,7 @@ const STATUS_STYLES: Record<ProjectStatus, string> = {
 const ROW_THUMBNAILS: Record<string, { src: string; alt: string }> = {
   bmw: { src: bmwImages.fogHero, alt: "" },
   noir: { src: noirImages.heroSmoke, alt: "" },
+  "casa-01": { src: casaImages.hero, alt: "" },
 };
 
 // A brief highlight on the launched project before BMW actually opens - long
@@ -89,30 +92,39 @@ export function ProjectsList({
 
   return (
     <div className="flex h-full flex-col sm:flex-row">
-      <div className="flex shrink-0 items-center gap-1 overflow-x-auto border-b border-border px-4 py-3 sm:w-40 sm:flex-col sm:items-stretch sm:gap-0.5 sm:overflow-visible sm:border-b-0 sm:border-r sm:px-4 sm:py-6">
-        <div className="hidden shrink-0 flex-col gap-1 pb-4 sm:flex">
+      <div className="flex shrink-0 items-center gap-1.5 overflow-x-auto border-b border-border px-4 py-3 sm:w-44 sm:flex-col sm:items-stretch sm:gap-1 sm:overflow-visible sm:border-b-0 sm:border-r sm:px-3 sm:py-6">
+        <div className="hidden shrink-0 flex-col gap-1 px-3 pb-5 sm:flex">
           <span className="font-mono text-caption uppercase tracking-[0.2em] text-muted">Projects</span>
           <span className="font-mono text-caption text-foreground/70">
             {osProjects.length} Projects · {activeCount} Active
           </span>
         </div>
-        {projectFilters.map((filter) => (
-          <button
-            key={filter.id}
-            type="button"
-            onClick={() => onFilterChange(filter.id)}
-            aria-pressed={activeFilter === filter.id}
-            className={cn(
-              "shrink-0 whitespace-nowrap rounded-md px-3 py-2 text-left font-mono text-caption uppercase tracking-widest transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
-              activeFilter === filter.id ? "bg-surface-raised text-accent-hover" : "text-muted hover:text-foreground"
-            )}
-          >
-            {filter.label}
-          </button>
-        ))}
+        {projectFilters.map((filter) => {
+          const active = activeFilter === filter.id;
+          return (
+            <button
+              key={filter.id}
+              type="button"
+              onClick={() => onFilterChange(filter.id)}
+              aria-pressed={active}
+              className={cn(
+                "relative shrink-0 whitespace-nowrap rounded-md py-2 pl-3.5 pr-3 text-left font-mono text-caption uppercase tracking-widest transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
+                active ? "bg-surface-raised/70 text-accent-hover" : "text-muted hover:bg-surface-raised/30 hover:text-foreground"
+              )}
+            >
+              {active && (
+                <span
+                  aria-hidden
+                  className="absolute inset-y-1.5 left-0 w-px rounded-full bg-accent-hover sm:inset-y-2"
+                />
+              )}
+              {filter.label}
+            </button>
+          );
+        })}
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="thin-scrollbar flex-1 overflow-y-auto">
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 px-6 py-16 text-center">
             <span className="font-mono text-caption uppercase tracking-widest text-muted">Nothing here yet</span>
@@ -163,28 +175,33 @@ function ProjectRow({ project, selected, pending, busy, onToggle, onLaunch }: Pr
     gsap.fromTo(inspector, { opacity: 0, y: -6 }, { opacity: 1, y: 0, duration: 0.3, ease: "sine.out" });
   }, [prefersReducedMotion]);
 
+  const index = String(osProjects.indexOf(project) + 1).padStart(2, "0");
+
   return (
     <div className="border-b border-border">
       <button
         type="button"
         onClick={onToggle}
         aria-expanded={selected}
-        className="group flex w-full items-center gap-4 px-6 py-5 text-left transition-colors duration-200 ease-out-expo hover:bg-surface-raised/40 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent sm:px-8"
+        className="group flex w-full items-center gap-4 px-6 py-6 text-left transition-colors duration-200 ease-out-expo hover:bg-surface-raised/40 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent sm:px-8"
       >
         {ROW_THUMBNAILS[project.slug] ? (
-          <span className="relative h-12 w-16 shrink-0 overflow-hidden rounded-md border border-border">
+          <span
+            className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg border border-border"
+            style={{ boxShadow: "inset 0 0 0 1px rgba(248,245,242,0.04)" }}
+          >
             <Image
               src={ROW_THUMBNAILS[project.slug].src}
               alt={ROW_THUMBNAILS[project.slug].alt}
               fill
-              sizes="64px"
+              sizes="80px"
               className="object-cover transition-transform duration-[1200ms] ease-out-expo group-hover:scale-110"
             />
           </span>
         ) : (
           <span
             aria-hidden
-            className="flex h-12 w-16 shrink-0 items-center justify-center rounded-md border border-border bg-surface-raised/40 font-mono text-caption uppercase text-muted"
+            className="flex h-14 w-20 shrink-0 items-center justify-center rounded-lg border border-border bg-surface-raised/40 font-mono text-caption uppercase text-muted"
           >
             {project.name.slice(0, 2)}
           </span>
@@ -192,6 +209,7 @@ function ProjectRow({ project, selected, pending, busy, onToggle, onLaunch }: Pr
 
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
           <span className="flex flex-wrap items-baseline gap-x-2.5">
+            <span className="font-mono text-caption tabular text-muted">{index}</span>
             <span className="truncate text-h3 font-bold text-foreground">{project.name}</span>
             {project.featured && (
               <span className="font-mono text-caption uppercase tracking-widest text-accent-hover">Featured</span>
@@ -233,25 +251,25 @@ function ProjectRow({ project, selected, pending, busy, onToggle, onLaunch }: Pr
 
           {project.description && <p className="max-w-lg text-body text-foreground">{project.description}</p>}
 
-          <dl className="mt-5 grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-4">
-            <div className="flex flex-col gap-1">
+          <dl className="mt-6 grid grid-cols-2 gap-x-8 gap-y-5 sm:grid-cols-4">
+            <div className="flex flex-col gap-1.5">
               <dt className="font-mono text-caption uppercase tracking-widest text-muted">Status</dt>
               <dd className="text-small text-foreground">{project.status}</dd>
             </div>
             {project.type && (
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1.5">
                 <dt className="font-mono text-caption uppercase tracking-widest text-muted">Type</dt>
                 <dd className="text-small text-foreground">{project.type}</dd>
               </div>
             )}
             {project.role && (
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1.5">
                 <dt className="font-mono text-caption uppercase tracking-widest text-muted">Role</dt>
                 <dd className="text-small text-foreground">{project.role}</dd>
               </div>
             )}
             {project.focus && (
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1.5">
                 <dt className="font-mono text-caption uppercase tracking-widest text-muted">Focus</dt>
                 <dd className="text-small text-foreground">{project.focus}</dd>
               </div>
@@ -259,11 +277,11 @@ function ProjectRow({ project, selected, pending, busy, onToggle, onLaunch }: Pr
           </dl>
 
           {project.tags && (
-            <div className="mt-5 flex flex-wrap gap-2">
+            <div className="mt-6 flex flex-wrap gap-2">
               {project.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="rounded-full border border-border px-3 py-1 font-mono text-caption uppercase tracking-widest text-muted"
+                  className="rounded-full border border-border/70 bg-surface-raised/50 px-3 py-1 font-mono text-caption uppercase tracking-widest text-foreground/70"
                 >
                   {tag}
                 </span>
@@ -271,20 +289,17 @@ function ProjectRow({ project, selected, pending, busy, onToggle, onLaunch }: Pr
             </div>
           )}
 
-          <div className="mt-6">
+          <div className="mt-7">
             {project.hasOverview ? (
-              <button
+              <Button
                 type="button"
                 disabled={busy}
                 onClick={onLaunch}
-                className={cn(
-                  "group inline-flex items-center gap-2 font-mono text-caption uppercase tracking-widest transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
-                  pending ? "text-accent-hover" : "text-foreground hover:text-accent-hover"
-                )}
+                variant="primary"
+                className={pending ? "text-accent-hover after:bg-accent-hover" : undefined}
               >
                 Open Project
-                <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-200 ease-out-expo group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-              </button>
+              </Button>
             ) : (
               <span className="font-mono text-caption uppercase tracking-widest text-muted">
                 {project.unavailableNote ?? "Case study unavailable."}
